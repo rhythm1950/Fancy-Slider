@@ -23,10 +23,12 @@ const showImages = (images) => {
     div.className = "col-lg-3 col-md-4 col-xs-6 img-item mb-2";
     div.innerHTML = ` <img class="img-fluid img-thumbnail" onclick=selectItem(event,"${image.webformatURL}") src="${image.webformatURL}" alt="${image.tags}">`;
     gallery.appendChild(div);
+    loader(false);
   });
 };
 
 const getImages = (query) => {
+  loader(true);
   fetch(
     `https://pixabay.com/api/?key=${KEY}=${query}&image_type=photo&pretty=true`
   )
@@ -40,12 +42,10 @@ const selectItem = (event, img) => {
   let element = event.target;
   element.classList.toggle("added");
 
-  // let item = sliders.indexOf(img);
-  // if (item === -1) {
-  //   sliders.push(img);
-  // } else {
-  //   element.classList.remove("added");
-  // }
+  let item = sliders.indexOf(img);
+  if (item === -1) {
+    sliders.push(img);
+  }
 };
 var timer;
 const createSlider = () => {
@@ -68,19 +68,21 @@ const createSlider = () => {
   document.querySelector(".main").style.display = "block";
   // hide image aria
   imagesArea.style.display = "none";
-  const duration = document.getElementById("duration").value || 1000;
-  if (duration > 0) {
-    sliders.forEach((slide) => {
-      let item = document.createElement("div");
-      item.className = "slider-item";
-      item.innerHTML = `<img class="w-100"
+  let duration = document.getElementById("duration").value || 1000;
+
+  if (duration < 1000) {
+    duration = 1000;
+  }
+
+  sliders.forEach((slide) => {
+    let item = document.createElement("div");
+    item.className = "slider-item";
+    item.innerHTML = `<img class="w-100"
       src="${slide}"
       alt="">`;
-      sliderContainer.appendChild(item);
-    });
-  } else {
-    alert("Please provide positive value of time");
-  }
+    sliderContainer.appendChild(item);
+  });
+
   changeSlide(0);
   timer = setInterval(function () {
     slideIndex++;
@@ -117,17 +119,35 @@ searchBtn.addEventListener("click", function () {
   document.querySelector(".main").style.display = "none";
   clearInterval(timer);
   const search = document.getElementById("search");
+
+  // Input validation added
+  if (search.value == "") {
+    alert(
+      "You haven't input any keyword. Do you want to see random random result?"
+    );
+  }
+
   getImages(search.value);
   sliders.length = 0;
 });
 
 const searchInput = document.getElementById("search");
-searchInput.addEventListener("keypress", (event)=> {
-    if (event.key === 'Enter') { 
-      document.getElementById("search-btn").click();
-    }
-  });
+searchInput.addEventListener("keypress", (event) => {
+  if (event.key === "Enter") {
+    document.getElementById("search-btn").click();
+  }
+});
 
 sliderBtn.addEventListener("click", function () {
   createSlider();
 });
+
+// spinner
+const loader = (show) => {
+  const spinner = document.getElementById("loader");
+  if (show) {
+    spinner.classList.remove("d-none");
+  } else {
+    spinner.classList.add("d-none");
+  }
+};
